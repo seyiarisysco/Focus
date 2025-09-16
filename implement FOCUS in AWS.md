@@ -73,10 +73,13 @@ resource "aws_cur_report_definition" "focus_export" {
 
 
 
-👉 This will export AWS CUR data. To align with FOCUS 1.0, you enable FOCUS schema in the Billing Console → Data Exports. Terraform support is rolling out — until then you can bootstrap with CUR.
+# 👉 This will export AWS CUR data. To align with FOCUS 1.0, you enable FOCUS schema in the Billing Console → Data Exports. Terraform support is rolling out — until then you can bootstrap with CUR.
 
-3. Athena SQL Example (FOCUS Standardized Queries) Create Athena table for FOCUS export (Parquet in S3)
+## 3. Athena SQL Example (FOCUS Standardized Queries) 
 
+### Create Athena table for FOCUS export (Parquet in S3)
+
+```sql 
 CREATE EXTERNAL TABLE IF NOT EXISTS focus_billing (
   lineItemId string,
   usageAccountId string,
@@ -94,19 +97,21 @@ CREATE EXTERNAL TABLE IF NOT EXISTS focus_billing (
 )
 STORED AS PARQUET
 LOCATION 's3://focus-data-export-example/focus/';
+```
 
-
-Example Queries Monthly Spend by Service
-
+## Example Queries Monthly Spend by Service
+```sql
 SELECT serviceCode,
        SUM(effectiveCost) as total_cost
 FROM focus_billing
 WHERE year = 2025 AND month = 8
 GROUP BY serviceCode
 ORDER BY total_cost DESC;
+```
 
-Discount Analysis (List vs Effective)
 
+## Discount Analysis (List vs Effective)
+```sql
 SELECT serviceCode,
        SUM(listCost) AS list_cost,
        SUM(effectiveCost) AS effective_cost,
@@ -114,36 +119,44 @@ SELECT serviceCode,
 FROM focus_billing
 WHERE year = 2025 AND month = 8
 GROUP BY serviceCode;
+```
 
 
-Top 10 Accounts by Spend
 
+## Top 10 Accounts by Spend
+```sql
 SELECT usageAccountId,
        SUM(effectiveCost) AS account_cost
 FROM focus_billing
 GROUP BY usageAccountId
 ORDER BY account_cost DESC
 LIMIT 10;
+```
 
-4. QuickSight Dashboard Deployment (FOCUS Dashboard)
 
-AWS has pre-built Cloud Intelligence Dashboards (CID) for FOCUS
+# 4. QuickSight Dashboard Deployment (FOCUS Dashboard)
 
-Deploy via AWS CLI:
+## AWS has pre-built Cloud Intelligence Dashboards (CID) for FOCUS
+
+### Deploy via AWS CLI:
+```bash
 aws cloudformation create-stack \
   --stack-name focus-dashboard \
   --template-url https://wellarchitectedlabs.s3.amazonaws.com/Cost/200_FinOps/Deployment/FOCUS/FOCUS-Dashboard.yaml \
   --capabilities CAPABILITY_NAMED_IAM
+```
 
-After deployment → open Amazon QuickSight, connect to Athena → focus_billing table.
 
-Now you have:
+## After deployment → open Amazon QuickSight, connect to Athena → focus_billing table.
 
-CloudFormation/Terraform to set up S3 + exports,
+### Now you have:
 
-Athena SQL queries mapped to FOCUS schema,
+#### CloudFormation/Terraform to set up S3 + exports,
 
-QuickSight dashboard for visualization.
+#### Athena SQL queries mapped to FOCUS schema,
+
+#### QuickSight dashboard for visualization.
+
 
 
 
