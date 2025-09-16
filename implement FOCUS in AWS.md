@@ -1,6 +1,7 @@
 # Perfect 🚀 — let’s make it practical. Below you’ll find CloudFormation + Terraform + Athena SQL examples to implement FOCUS in AWS.
 ## CloudFormation Template (Deploy AWS Data Exports + S3 Bucket)
 
+''' yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: "Enable FOCUS Data Export to S3"
 
@@ -19,7 +20,7 @@ Resources:
       ComputationPreference:
         PricingPlanArn: !Ref PricingPlan
       PrimaryAccountId: !Ref AWS::AccountId
-	  
+	'''  
 👉 This is a starting point. In practice, you’ll need to set up an AWS Data Export resource (using AWS::DataExports::Export) once CloudFormation supports it (currently via API/Console).
 
 2. Terraform Script (Export Billing Data with FOCUS Schema)
@@ -137,6 +138,7 @@ CloudFormation/Terraform to set up S3 + exports,
 Athena SQL queries mapped to FOCUS schema,
 
 QuickSight dashboard for visualization.
+
 
 
 
