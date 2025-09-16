@@ -24,10 +24,11 @@ Resources:
 ```
 
 	  
-👉 This is a starting point. In practice, you’ll need to set up an AWS Data Export resource (using AWS::DataExports::Export) once CloudFormation supports it (currently via API/Console).
+# 👉 This is a starting point. In practice, you’ll need to set up an AWS Data Export resource (using AWS::DataExports::Export) once CloudFormation supports it (currently via API/Console).
 
-2. Terraform Script (Export Billing Data with FOCUS Schema)
+## 2. Terraform Script (Export Billing Data with FOCUS Schema)
 
+```hcl
 provider "aws" {
   region = "us-east-1"
 }
@@ -67,6 +68,8 @@ resource "aws_cur_report_definition" "focus_export" {
   additional_schema_elements = ["RESOURCES"]
   report_versioning          = "CREATE_NEW_REPORT"
 }
+
+```
 
 
 
@@ -141,6 +144,7 @@ CloudFormation/Terraform to set up S3 + exports,
 Athena SQL queries mapped to FOCUS schema,
 
 QuickSight dashboard for visualization.
+
 
 
 
