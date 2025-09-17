@@ -1,18 +1,19 @@
-👉 Would you like me to also create a CloudFormation one-click deployment that sets up:
-S3 + OU mapping Lambda + Athena tables + QuickSight dashboard all in one stack?
+# 👉 Would you like me to also create a CloudFormation one-click deployment that sets up:
+## S3 + OU mapping Lambda + Athena tables + QuickSight dashboard all in one stack?
 
-Perfect 🔥 — let’s bring it all together into a single CloudFormation stack that sets up your entire FOCUS + OU FinOps pipeline:
+### Perfect 🔥 — let’s bring it all together into a single CloudFormation stack that sets up your entire FOCUS + OU FinOps pipeline:
 
-S3 buckets → for FOCUS exports + OU mapping
+### S3 buckets → for FOCUS exports + OU mapping
 
-Lambda + EventBridge → auto-generate OU → Account mapping CSV
+### Lambda + EventBridge → auto-generate OU → Account mapping CSV
 
-Athena tables → FOCUS billing + OU mapping
+### Athena tables → FOCUS billing + OU mapping
 
-QuickSight Dashboard → OU-level visualization
+### QuickSight Dashboard → OU-level visualization
 
-🔹 CloudFormation One-Click Deployment (FOCUS + OU Dashboard)
+## 🔹 CloudFormation One-Click Deployment (FOCUS + OU Dashboard)
 
+```yaml 
 AWSTemplateFormatVersion: '2010-09-09'
 Description: "End-to-End FOCUS with OU Mapping and QuickSight Dashboard"
 
@@ -175,35 +176,40 @@ Outputs:
     Value: !Ref FocusBillingAthenaQuery
   AthenaOuMappingQueryOut:
     Value: !Ref OuMappingAthenaQuery
+```
 
 
-🔹 Deployment Instructions
 
-Save this as focus-ou-full.yaml.
+##🔹 Deployment Instructions
 
-Deploy with AWS CLI:
+### Save this as focus-ou-full.yaml.
 
-
+### Deploy with AWS CLI:
+```bash
 aws cloudformation create-stack \
   --stack-name focus-ou-full \
   --template-body file://focus-ou-full.yaml \
   --capabilities CAPABILITY_NAMED_IAM
+```
 
 
-Go to Athena, run the two CREATE TABLE queries from the stack outputs.
 
-In QuickSight:
 
-Create a dataset using Athena with the OU join SQL (from Step 8.1 above).
+### Go to Athena, run the two CREATE TABLE queries from the stack outputs.
 
-Import focus-ou-dashboard.json as a QuickSight dashboard.
+### In QuickSight:
 
-✅ End Result
+### Create a dataset using Athena with the OU join SQL (from Step 8.1 above).
 
-FOCUS export bucket for billing data
+### Import focus-ou-dashboard.json as a QuickSight dashboard.
 
-OU mapping bucket updated daily by Lambda
+### ✅ End Result
 
-Athena tables for billing + OU mapping
+### FOCUS export bucket for billing data
 
-QuickSight dashboard for OU-level FinOps
+### OU mapping bucket updated daily by Lambda
+
+### Athena tables for billing + OU mapping
+
+
+### QuickSight dashboard for OU-level FinOps
