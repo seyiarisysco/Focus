@@ -1,18 +1,18 @@
-Do you want me to also include a multi-account (AWS Organizations) setup guide so you can centralize all account exports into one S3 + Athena?
+# Do you want me to also include a multi-account (AWS Organizations) setup guide so you can centralize all account exports into one S3 + Athena?
 
-Great 👍 Let’s extend the FOCUS implementation for multi-account (AWS Organizations) so you can centralize all AWS billing data into one place.
+## Great 👍 Let’s extend the FOCUS implementation for multi-account (AWS Organizations) so you can centralize all AWS billing data into one place.
 
-Multi-Account FOCUS Setup in AWS Organizations
-Step 1: Choose a Central Billing Account
+### Multi-Account FOCUS Setup in AWS Organizations
+### Step 1: Choose a Central Billing Account
 
-Pick the Management (payer) account in AWS Organizations to collect all FOCUS exports.
+### Pick the Management (payer) account in AWS Organizations to collect all FOCUS exports.
 
-All member accounts will consolidate usage & cost data into this central account.
+### All member accounts will consolidate usage & cost data into this central account.
 
-Step 2: Create Central S3 Bucket (in Management Account)
+### Step 2: Create Central S3 Bucket (in Management Account)
 
-Terraform example:
-
+### Terraform example:
+```hcl
 resource "aws_s3_bucket" "focus_org_export" {
   bucket = "org-focus-data-export-central"
 }
@@ -36,28 +36,30 @@ resource "aws_s3_bucket_policy" "focus_org_policy" {
 }
 EOT
 }
-
-👉 This allows AWS Billing service to deliver CUR/FOCUS exports into this bucket.
-
-Step 3: Enable FOCUS Export in Management Account
-
-Go to Billing Console → Data Exports.
-
-Create a new export:
-
-Schema = FOCUS 1.0
-
-Destination = s3://org-focus-data-export-central
-
-Format = Parquet
-
-✅ This ensures all linked accounts’ usage flows into one export.
+```
 
 
-Step 4: Partition Data by Account in Athena
+## 👉 This allows AWS Billing service to deliver CUR/FOCUS exports into this bucket.
+
+### Step 3: Enable FOCUS Export in Management Account
+
+### Go to Billing Console → Data Exports.
+
+### Create a new export:
+
+### Schema = FOCUS 1.0
+
+### Destination = s3://org-focus-data-export-central
+
+### Format = Parquet
+
+### ✅ This ensures all linked accounts’ usage flows into one export.
+
+
+## Step 4: Partition Data by Account in Athena
 
 Athena table example:
-
+```sql 
 CREATE EXTERNAL TABLE IF NOT EXISTS focus_org_billing (
   lineItemId string,
   payerAccountId string,
@@ -79,26 +81,33 @@ CREATE EXTERNAL TABLE IF NOT EXISTS focus_org_billing (
 PARTITIONED BY (year int, month int)
 STORED AS PARQUET
 LOCATION 's3://org-focus-data-export-central/focus/';
+```
 
-👉 Run:
 
+## 👉 Run:
+
+```sql
 MSCK REPAIR TABLE focus_org_billing;
+```
 
-to load partitions.
 
-Step 5: Sample Multi-Account Queries 
-Spend by Linked Account
+### to load partitions.
 
+## Step 5: Sample Multi-Account Queries 
+## Spend by Linked Account
+
+```sql 
 SELECT usageAccountId,
        SUM(effectiveCost) AS total_cost
 FROM focus_org_billing
 WHERE year = 2025 AND month = 8
 GROUP BY usageAccountId
 ORDER BY total_cost DESC;
+```
 
+## Compare Payer vs Linked Account Costs
 
-Compare Payer vs Linked Account Costs
-
+```sql
 SELECT payerAccountId,
        usageAccountId,
        SUM(effectiveCost) AS effective_cost
@@ -106,9 +115,10 @@ FROM focus_org_billing
 WHERE year = 2025 AND month = 8
 GROUP BY payerAccountId, usageAccountId
 ORDER BY effective_cost DESC;
+```
 
-Compare Payer vs Linked Account Costs
-
+## Compare Payer vs Linked Account Costs
+```sql 
 SELECT payerAccountId,
        usageAccountId,
        SUM(effectiveCost) AS effective_cost
@@ -116,51 +126,57 @@ FROM focus_org_billing
 WHERE year = 2025 AND month = 8
 GROUP BY payerAccountId, usageAccountId
 ORDER BY effective_cost DESC;
+```
 
-Cost Breakdown by OU (if accounts are mapped in tags/metadata)
 
+## Cost Breakdown by OU (if accounts are mapped in tags/metadata)
+```sql
 SELECT resourceTags["aws:organization:ou"],
        SUM(effectiveCost) AS ou_cost
 FROM focus_org_billing
 WHERE year = 2025 AND month = 8
 GROUP BY resourceTags["aws:organization:ou"]
 ORDER BY ou_cost DESC;
+```
 
-Step 6: Deploy FOCUS Dashboard (Organization View)
 
-Use the AWS Cloud Intelligence Dashboards (CID) deployment:
+## Step 6: Deploy FOCUS Dashboard (Organization View)
 
+## Use the AWS Cloud Intelligence Dashboards (CID) deployment:
+```bash
 aws cloudformation create-stack \
   --stack-name focus-org-dashboard \
   --template-url https://wellarchitectedlabs.s3.amazonaws.com/Cost/200_FinOps/Deployment/FOCUS/FOCUS-Dashboard.yaml \
   --parameters ParameterKey=DataSourceName,ParameterValue=focus_org_billing \
   --capabilities CAPABILITY_NAMED_IAM
+```
 
 
-This creates a QuickSight dashboard with organization-wide spend.
 
-You’ll be able to drill down by account, OU, service, region
+### This creates a QuickSight dashboard with organization-wide spend.
 
-✅ End Result
+### You’ll be able to drill down by account, OU, service, region
 
-Centralized S3 bucket → collects all accounts’ cost & usage data in FOCUS format.
+## ✅ End Result
 
-Athena tables → query and analyze costs across accounts.
+### Centralized S3 bucket → collects all accounts’ cost & usage data in FOCUS format.
 
-QuickSight dashboards → visualize costs per service, OU, account.
+### Athena tables → query and analyze costs across accounts.
 
-👉 Do you also want me to include automation for OU-to-Account mapping (so you can group accounts by department automatically in FOCUS queries)?
+### QuickSight dashboards → visualize costs per service, OU, account.
 
-Perfect 🚀 Let’s extend your FOCUS multi-account setup with automated OU-to-Account mapping. This lets you see spend grouped by departments or business units (OUs) instead of just raw account IDs.
+# 👉 Do you also want me to include automation for OU-to-Account mapping (so you can group accounts by department automatically in FOCUS queries)?
 
-🔹 Step 7: Automating OU → Account Mapping in AWS Organizations
+# Perfect 🚀 Let’s extend your FOCUS multi-account setup with automated OU-to-Account mapping. This lets you see spend grouped by departments or business units (OUs) instead of just raw account IDs.
 
-Step 7.1: Export OU Structure from AWS Organizations
+## 🔹 Step 7: Automating OU → Account Mapping in AWS Organizations
 
-We can use AWS CLI or boto3 to list accounts and their OU mappings.
+## Step 7.1: Export OU Structure from AWS Organizations
 
-Example with AWS CLI:
+### We can use AWS CLI or boto3 to list accounts and their OU mappings.
 
+### Example with AWS CLI:
+```bash
 # List all OUs under the root
 aws organizations list-organizational-units-for-parent \
   --parent-id r-examplerootid
@@ -168,10 +184,12 @@ aws organizations list-organizational-units-for-parent \
 # List accounts in an OU
 aws organizations list-accounts-for-parent \
   --parent-id ou-examplerootid-exampleouid
+```
 
 
-Step 7.2: Automate OU-to-Account Mapping (Python Script)
 
+## Step 7.2: Automate OU-to-Account Mapping (Python Script)
+```python 
 import boto3
 import csv
 
@@ -204,19 +222,21 @@ if __name__ == "__main__":
         writer.writerows(account_mapping)
 
     print("✅ account_ou_mapping.csv generated!")
+```
 
-
-This will generate a file like:
-
+### This will generate a file like:
+```
 AccountId,AccountName,OU
 111111111111,DevAccount,OU-Dev
 222222222222,ProdAccount,OU-Prod
 333333333333,Analytics,OU-Data
+```
 
-Step 7.3: Load Mapping into Athena (Glue Table)
 
-Upload account_ou_mapping.csv into S3 and create a Glue table:
+## Step 7.3: Load Mapping into Athena (Glue Table)
 
+### Upload account_ou_mapping.csv into S3 and create a Glue table:
+```sql
 CREATE EXTERNAL TABLE account_ou_mapping (
   AccountId string,
   AccountName string,
@@ -224,11 +244,14 @@ CREATE EXTERNAL TABLE account_ou_mapping (
 )
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 LOCATION 's3://org-focus-data-export-central/mappings/';
+```
 
-Step 7.4: Join OU Mapping with FOCUS Data
 
-Now you can query costs per OU:
+## Step 7.4: Join OU Mapping with FOCUS Data
 
+### Now you can query costs per OU:
+
+```sql 
 SELECT m.OU,
        SUM(f.effectiveCost) AS total_cost
 FROM focus_org_billing f
@@ -237,42 +260,42 @@ JOIN account_ou_mapping m
 WHERE year = 2025 AND month = 8
 GROUP BY m.OU
 ORDER BY total_cost DESC;
+```
 
+### 👉 This automatically rolls up spend by OU (like Engineering, Finance, R&D) instead of account IDs.
 
-👉 This automatically rolls up spend by OU (like Engineering, Finance, R&D) instead of account IDs.
+## Step 7.5: Automate Refresh
 
-Step 7.5: Automate Refresh
+### Schedule the Python script (Step 7.2) via AWS Lambda + EventBridge (e.g., daily/weekly).
 
-Schedule the Python script (Step 7.2) via AWS Lambda + EventBridge (e.g., daily/weekly).
+### Replace the CSV in S3 each run.
 
-Replace the CSV in S3 each run.
+### Athena queries will always have the latest OU mapping.
 
-Athena queries will always have the latest OU mapping.
+## ✅ End Result
 
-✅ End Result
+### FOCUS Data → Centralized in S3 (all accounts).
 
-FOCUS Data → Centralized in S3 (all accounts).
+### OU Mapping → Automatically updated from AWS Organizations.
 
-OU Mapping → Automatically updated from AWS Organizations.
+### Athena Queries → Show spend by OU, Account, Service, Region.
 
-Athena Queries → Show spend by OU, Account, Service, Region.
+### QuickSight Dashboards → Business-friendly reporting by department.
 
-QuickSight Dashboards → Business-friendly reporting by department.
+# 👉 Do you also want me to add a CloudFormation/Terraform template that sets up the OU mapping pipeline automatically (Lambda + S3 + Glue + Athena) so you don’t need to run the script manually?
 
-👉 Do you also want me to add a CloudFormation/Terraform template that sets up the OU mapping pipeline automatically (Lambda + S3 + Glue + Athena) so you don’t need to run the script manually?
+# Awesome 💡 — let’s fully automate the OU → Account mapping pipeline for your FOCUS setup using CloudFormation and Terraform. This will ensure OU mappings are always up-to-date in S3 + Athena without manual scripts.
 
-Awesome 💡 — let’s fully automate the OU → Account mapping pipeline for your FOCUS setup using CloudFormation and Terraform. This will ensure OU mappings are always up-to-date in S3 + Athena without manual scripts.
+## 🔹 CloudFormation: OU → Account Mapping Automation
 
-🔹 CloudFormation: OU → Account Mapping Automation
+### This stack does 3 things:
 
-This stack does 3 things:
+## Lambda Function → queries AWS Organizations and generates OU mapping CSV.
 
-Lambda Function → queries AWS Organizations and generates OU mapping CSV.
+## S3 Bucket → stores account_ou_mapping.csv.
 
-S3 Bucket → stores account_ou_mapping.csv.
-
-EventBridge Rule → triggers Lambda daily (can be hourly/weekly).
-
+## EventBridge Rule → triggers Lambda daily (can be hourly/weekly).
+```yaml 
 AWSTemplateFormatVersion: '2010-09-09'
 Description: "Automate OU-to-Account Mapping for FOCUS"
 
@@ -355,16 +378,16 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt MappingSchedule.Arn
+```
 
+### 👉 After this stack is deployed:
 
-👉 After this stack is deployed:
+### Every day, the Lambda will regenerate account_ou_mapping.csv in S3.
 
-Every day, the Lambda will regenerate account_ou_mapping.csv in S3.
+### Athena can query it directly.
 
-Athena can query it directly.
-
-🔹 Terraform: OU → Account Mapping Automation
-
+## 🔹 Terraform: OU → Account Mapping Automation
+```hcl
 provider "aws" {
   region = "us-east-1"
 }
@@ -435,18 +458,18 @@ resource "aws_lambda_permission" "allow_events" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.daily.arn
 }
+```
+## 👉 In Terraform:
 
+### Put the Python script (index.py) into lambda.zip.
 
-👉 In Terraform:
+### Deploy → Lambda runs daily → updates S3 mapping file.
 
-Put the Python script (index.py) into lambda.zip.
+## 🔹 Athena Integration
 
-Deploy → Lambda runs daily → updates S3 mapping file.
+### Create a table to query the mapping:
 
-🔹 Athena Integration
-
-Create a table to query the mapping:
-
+```sql 
 CREATE EXTERNAL TABLE account_ou_mapping (
   AccountId string,
   AccountName string,
@@ -454,10 +477,10 @@ CREATE EXTERNAL TABLE account_ou_mapping (
 )
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 LOCATION 's3://focus-ou-mapping-example/';
+```
+### Join with your FOCUS billing table:
 
-
-Join with your FOCUS billing table:
-
+```sql
 SELECT m.OU,
        SUM(f.effectiveCost) AS total_cost
 FROM focus_org_billing f
@@ -466,33 +489,36 @@ JOIN account_ou_mapping m
 WHERE year = 2025 AND month = 8
 GROUP BY m.OU
 ORDER BY total_cost DESC;
+```
 
 
-✅ Now you have:
 
-CloudFormation/Terraform → automatic OU mapping pipeline.
+### ✅ Now you have:
 
-S3 → stores account_ou_mapping.csv (daily refreshed).
+### CloudFormation/Terraform → automatic OU mapping pipeline.
 
-Athena → query OU-level costs.
+### S3 → stores account_ou_mapping.csv (daily refreshed).
 
-QuickSight → visualize spend by OU, account, service.
+### Athena → query OU-level costs.
+
+### QuickSight → visualize spend by OU, account, service.
 
 
-Would you like me to also add a QuickSight dashboard JSON template (pre-built visuals for OU spend, account spend, discounts, service breakdown) so you can deploy a FinOps OU dashboard in one click?
+## Would you like me to also add a QuickSight dashboard JSON template (pre-built visuals for OU spend, account spend, discounts, service breakdown) so you can deploy a FinOps OU dashboard in one click?
 
-Perfect 🚀 — let’s finish your setup with a QuickSight OU Dashboard template that plugs into your FOCUS Athena tables and OU mapping.
+## Perfect 🚀 — let’s finish your setup with a QuickSight OU Dashboard template that plugs into your FOCUS Athena tables and OU mapping.
 
-🔹 Step 8: QuickSight Dashboard for OU-Level FinOps
+## 🔹 Step 8: QuickSight Dashboard for OU-Level FinOps
 
-AWS QuickSight dashboards can be deployed via CloudFormation, boto3, or template JSON. Below I’ll give you the JSON template plus deployment steps.
+### AWS QuickSight dashboards can be deployed via CloudFormation, boto3, or template JSON. Below I’ll give you the JSON template plus deployment steps.
 
-8.1: QuickSight Dataset (Athena Data Source)
+## 8.1: QuickSight Dataset (Athena Data Source)
 
-First, create a dataset in QuickSight that joins your FOCUS data with OU mapping.
+## First, create a dataset in QuickSight that joins your FOCUS data with OU mapping.
 
-SQL for dataset:
+### SQL for dataset:
 
+```sql 
 SELECT f.year,
        f.month,
        f.usageAccountId,
@@ -508,12 +534,14 @@ SELECT f.year,
 FROM focus_org_billing f
 LEFT JOIN account_ou_mapping m
   ON f.usageAccountId = m.AccountId
+```
 
 
-8.2: Dashboard Template (JSON)
 
-Save this JSON as focus-ou-dashboard.json.
+## 8.2: Dashboard Template (JSON)
 
+### Save this JSON as focus-ou-dashboard.json.
+```json 
 {
   "Version": "1",
   "DashboardId": "Focus-OU-Dashboard",
@@ -542,62 +570,72 @@ Save this JSON as focus-ou-dashboard.json.
     }
   ]
 }
+```
 
 
-8.3: Key Visuals in the Dashboard
 
-The dashboard will include:
+## 8.3: Key Visuals in the Dashboard
 
-Spend by OU (bar chart)
+## The dashboard will include:
 
+### Spend by OU (bar chart)
+```sql 
 SELECT OU, SUM(effectiveCost) AS total_cost
 FROM FOCUS_OU
 GROUP BY OU
 ORDER BY total_cost DESC;
+```
+### Spend Trend by OU (line chart)
 
-
-Spend Trend by OU (line chart)
-
+```sql
 SELECT year, month, OU, SUM(effectiveCost) AS total_cost
 FROM FOCUS_OU
 GROUP BY year, month, OU
 ORDER BY year, month;
+```
 
 
-Top Accounts in Each OU (heatmap)
 
+## Top Accounts in Each OU (heatmap)
+```sql
 SELECT OU, AccountName, SUM(effectiveCost) AS account_cost
 FROM FOCUS_OU
 GROUP BY OU, AccountName
 ORDER BY account_cost DESC;
+```
 
 
-Service Breakdown by OU (stacked bar chart)
 
+### Service Breakdown by OU (stacked bar chart)
+```sql
 SELECT OU, serviceCode, SUM(effectiveCost) AS service_cost
 FROM FOCUS_OU
 GROUP BY OU, serviceCode;
+```
 
-
-Discount Efficiency (list vs effective cost)
-
+## Discount Efficiency (list vs effective cost)
+```sql
 SELECT OU,
        SUM(listCost) AS list_cost,
        SUM(effectiveCost) AS effective_cost,
        (1 - SUM(effectiveCost)/SUM(listCost))*100 AS discount_pct
 FROM FOCUS_OU
 GROUP BY OU;
+```
 
-8.4: Deploy the Dashboard
-AWS CLI:
 
+## 8.4: Deploy the Dashboard
+## AWS CLI:
+```sql 
 aws quicksight create-dashboard \
   --aws-account-id YOUR_ACCOUNT_ID \
   --cli-input-json file://focus-ou-dashboard.json
+```
 
 
-boto3 (Python):
 
+### boto3 (Python):
+```python
 import boto3, json
 
 qs = boto3.client("quicksight")
@@ -614,23 +652,27 @@ resp = qs.create_dashboard(
 )
 print(resp)
 
+```
 
-✅ End Result
 
-Daily refreshed OU mappings → via Lambda → S3 → Athena.
 
-FOCUS billing data → centralized across all accounts.
+### ✅ End Result
 
-QuickSight OU Dashboard → visuals for:
+### Daily refreshed OU mappings → via Lambda → S3 → Athena.
 
-Spend by OU
+### FOCUS billing data → centralized across all accounts.
 
-Spend trend over time
+### QuickSight OU Dashboard → visuals for:
 
-Top accounts per OU
+### Spend by OU
 
-Service breakdown per OU
+### Spend trend over time
 
-Discount efficiency
+### Top accounts per OU
+
+### Service breakdown per OU
+
+### Discount efficiency
+
 
 
