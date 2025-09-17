@@ -1,19 +1,20 @@
-👉 Would you like me to also generate a Terraform module that replicates this end-to-end stack (instead of CloudFormation)?
+# 👉 Would you like me to also generate a Terraform module that replicates this end-to-end stack (instead of CloudFormation)?
 
-Got it ✅ — let’s build a Terraform module that replicates the end-to-end FOCUS + OU FinOps stack we just built in CloudFormation.
+## Got it ✅ — let’s build a Terraform module that replicates the end-to-end FOCUS + OU FinOps stack we just built in CloudFormation.
 
-This module will deploy:
+### This module will deploy:
 
-S3 buckets for FOCUS exports + OU mapping
+#### S3 buckets for FOCUS exports + OU mapping
 
-Lambda + EventBridge to refresh OU mapping daily
+#### Lambda + EventBridge to refresh OU mapping daily
 
-Athena tables for FOCUS + OU mapping
+#### Athena tables for FOCUS + OU mapping
 
-Outputs you can plug into QuickSight
+#### Outputs you can plug into QuickSight
 
-🔹 Terraform Module: modules/focus-ou
+## 🔹 Terraform Module: modules/focus-ou
 
+```yaml 
 variable "focus_export_bucket" {
   default = "focus-data-export-central"
 }
@@ -201,11 +202,13 @@ output "ou_mapping_bucket" {
 output "ou_mapping_lambda" {
   value = aws_lambda_function.ou_mapping.arn
 }
+```
 
 
-🔹 Usage in Root main.tf
 
+## 🔹 Usage in Root main.tf
 
+```hcl 
 module "focus_ou" {
   source             = "./modules/focus-ou"
   focus_export_bucket = "my-org-focus-billing"
@@ -221,30 +224,34 @@ module "focus_ou" {
   region              = "us-east-1"
 }
 
+```
 
-Run:
 
+### Run:
+```bash 
 terraform init
 terraform apply
+```
 
 
-✅ End Result
 
-S3: Buckets for FOCUS exports + OU mappings
+## ✅ End Result
 
-Lambda: Generates OU mapping CSV daily
+## S3: Buckets for FOCUS exports + OU mappings
 
-Athena: Tables for FOCUS billing + OU mapping
+## Lambda: Generates OU mapping CSV daily
 
-QuickSight: You can connect to the Athena dataset and import the OU dashboard JSON
+## Athena: Tables for FOCUS billing + OU mapping
 
-
-👉 Would you like me to also extend this module to auto-deploy the QuickSight OU dashboard (via aws_quicksight_dashboard resource), so it’s truly one-click from Terraform?
+## QuickSight: You can connect to the Athena dataset and import the OU dashboard JSON
 
 
-Perfect 🚀 — let’s make your Terraform module fully one-click by adding QuickSight OU Dashboard deployment on top of the FOCUS + OU pipeline.
+## 👉 Would you like me to also extend this module to auto-deploy the QuickSight OU dashboard (via aws_quicksight_dashboard resource), so it’s truly one-click from Terraform?
 
-⚠️ Note: The aws_quicksight_dashboard resource requires:
+
+## Perfect 🚀 — let’s make your Terraform module fully one-click by adding QuickSight OU Dashboard deployment on top of the FOCUS + OU pipeline.
+
+### ⚠️ Note: The aws_quicksight_dashboard resource requires:
 
 QuickSight Enterprise Edition
 
@@ -261,8 +268,9 @@ Athena dataset (FOCUS + OU join)
 QuickSight dashboard with OU visuals
 
 
-🔹 Extended Terraform Module (modules/focus-ou)
+### 🔹 Extended Terraform Module (modules/focus-ou)
 
+```hcl
 variable "focus_export_bucket" { default = "focus-data-export-central" }
 variable "ou_mapping_bucket"  { default = "focus-ou-mapping-central" }
 variable "region"             { default = "us-east-1" }
@@ -363,12 +371,13 @@ resource "aws_quicksight_dashboard" "focus_ou" {
     actions   = ["quicksight:DescribeDashboard", "quicksight:QueryDashboard"]
   }
 }
+ ```
 
 
 
-🔹 Root main.tf
+## 🔹 Root main.tf
 
-
+```hcl
 module "focus_ou" {
   source            = "./modules/focus-ou"
   focus_export_bucket = "my-org-focus-billing"
@@ -378,14 +387,18 @@ module "focus_ou" {
   quicksight_user     = "user/default/yourname"
 }
 
+```
 
-🔹 Deploy
 
+## 🔹 Deploy
+```bash 
 terraform init
 terraform apply
+```
 
 
-✅ End Result
+
+## ✅ End Result
 
 S3 → buckets for billing & OU mapping
 
@@ -393,27 +406,27 @@ Lambda → daily OU mapping refresh
 
 Athena → tables for FOCUS + OU mapping
 
-QuickSight → OU dashboard auto-deployed (line charts, bar charts, spend breakdowns)
+### QuickSight → OU dashboard auto-deployed (line charts, bar charts, spend breakdowns)
 
-👉 Do you want me to also create a sample QuickSight template definition JSON (with the charts: Spend by OU, Spend Trend, Service Breakdown, Discount %) that this Terraform can import automatically instead of a blank dashboard?
-
-
-Perfect 🔥 — let’s add a QuickSight Template JSON with pre-built FOCUS OU visuals so that your Terraform stack can deploy a ready-to-use dashboard (not blank).
+## 👉 Do you want me to also create a sample QuickSight template definition JSON (with the charts: Spend by OU, Spend Trend, Service Breakdown, Discount %) that this Terraform can import automatically instead of a blank dashboard?
 
 
-🔹 1. QuickSight OU Dashboard Template JSON
+## Perfect 🔥 — let’s add a QuickSight Template JSON with pre-built FOCUS OU visuals so that your Terraform stack can deploy a ready-to-use dashboard (not blank).
+
+
+## 🔹 1. QuickSight OU Dashboard Template JSON
 
 Save this as focus-ou-template.json.
 This template defines 4 visuals:
 
-Spend by OU (bar chart)
+#### Spend by OU (bar chart)
 
-Spend Trend by OU (line chart)
+#### Spend Trend by OU (line chart)
 
-Service Breakdown by OU (stacked bar chart)
+#### Service Breakdown by OU (stacked bar chart)
 
-Discount Efficiency (list vs effective cost)
-
+#### Discount Efficiency (list vs effective cost)
+```json
 {
   "AwsAccountId": "123456789012",
   "TemplateId": "focus-ou-template",
@@ -509,17 +522,19 @@ Discount Efficiency (list vs effective cost)
   }
 }
 
+```
 
-👉 Replace:
+
+#### 👉 Replace:
 
 123456789012 with your AWS account ID
 
 YOUR_USER with your QuickSight user name
 
-🔹 2. Terraform to Import Template
+## 🔹 2. Terraform to Import Template
 
 Add this to your module:
-
+```hcl
 resource "aws_quicksight_template" "focus_ou" {
   template_id    = "focus-ou-template"
   name           = "FOCUS OU Template"
@@ -565,21 +580,27 @@ resource "aws_quicksight_dashboard" "focus_ou" {
     actions   = ["quicksight:DescribeDashboard", "quicksight:QueryDashboard"]
   }
 }
+```
 
 
-🔹 3. Deploy
 
+## 🔹 3. Deploy
 
+```bash
 terraform init
 terraform apply
+```
+
+
 
 
 After apply:
 
-OU mapping Lambda + S3 = daily refresh
+#### OU mapping Lambda + S3 = daily refresh
 
-Athena dataset = cost + OU join
+#### Athena dataset = cost + OU join
 
-QuickSight dashboard = OU dashboard with spend, trends, services, discount
+#### QuickSight dashboard = OU dashboard with spend, trends, services, discount
 
-✅ End-to-end FinOps pipeline in one Terraform apply.
+#### ✅ End-to-end FinOps pipeline in one Terraform apply.
+
