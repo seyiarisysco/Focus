@@ -1,23 +1,23 @@
-👉 Do you want me to also wire this OU drill-through CSV export into your daily FinOps digest email (so FinOps automatically gets the OU-level breakdown attached instead of manual export)?
+# 👉 Do you want me to also wire this OU drill-through CSV export into your daily FinOps digest email (so FinOps automatically gets the OU-level breakdown attached instead of manual export)?
 
-Excellent ✅ — let’s extend the daily FinOps digest email to automatically include the OU-level CSV breakdown so FinOps engineers don’t need to manually export from QuickSight.
+## Excellent ✅ — let’s extend the daily FinOps digest email to automatically include the OU-level CSV breakdown so FinOps engineers don’t need to manually export from QuickSight.
 
-🔹 1. Approach
+### 🔹 1. Approach
 
-The OU drill-through table (Service + Account breakdown) already exists.
+### The OU drill-through table (Service + Account breakdown) already exists.
 
-We’ll generate its CSV automatically via Athena query in Lambda (same dataset powering QuickSight).
+### We’ll generate its CSV automatically via Athena query in Lambda (same dataset powering QuickSight).
 
-Lambda will:
+### Lambda will:
 
-Run Athena query for all OUs (or top N OUs by cost).
+### Run Athena query for all OUs (or top N OUs by cost).
 
-Save results to S3.
+### Save results to S3.
 
-Attach CSV(s) to the daily FinOps digest email via SES or presigned S3 link.
+### Attach CSV(s) to the daily FinOps digest email via SES or presigned S3 link.
 
-🔹 2. Athena Query for OU Drill-Through CSV
-
+###🔹 2. Athena Query for OU Drill-Through CSV
+```sql 
 SELECT 
     date_trunc('day', BillingDate) AS BillingDate,
     OU,
@@ -27,6 +27,8 @@ SELECT
 FROM finops_db.finops_daily_summary
 GROUP BY 1, OU, Service, LinkedAccount
 ORDER BY BillingDate DESC, OU, DailyCost DESC;
+```
+
 
 
 🔹 3. Lambda Function (Python)
@@ -175,4 +177,5 @@ Attached OU drill-through CSV ✅
 
 🔎 Drill-through dashboards
 🔟 📂 Auto CSV export in digest emails ✅
+
 
