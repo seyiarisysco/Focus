@@ -1,22 +1,22 @@
-👉 Do you also want me to extend this with parameterized filters in the QuickSight template (e.g., filter by OU, Account, or Service dynamically)?
+# 👉 Do you also want me to extend this with parameterized filters in the QuickSight template (e.g., filter by OU, Account, or Service dynamically)?
 
-Awesome 🎯 — let’s extend the QuickSight OU Dashboard template with parameterized filters so you (and your FinOps team) can interactively filter spend by OU, Account, or Service.
+# Awesome 🎯 — let’s extend the QuickSight OU Dashboard template with parameterized filters so you (and your FinOps team) can interactively filter spend by OU, Account, or Service.
 
-🔹 1. Add Parameters for Filters
+## 🔹 1. Add Parameters for Filters
 
 QuickSight supports parameters + controls so you can dynamically filter.
 We’ll add:
 
-OUFilter → filter by Organizational Unit
+## OUFilter → filter by Organizational Unit
 
-AccountFilter → filter by Account
+## AccountFilter → filter by Account
 
-ServiceFilter → filter by AWS Service
+## ServiceFilter → filter by AWS Service
 
-🔹 2. Updated Template JSON (focus-ou-template.json)
+## 🔹 2. Updated Template JSON (focus-ou-template.json)
 
 Here’s a trimmed version showing parameterized filters added on top of visuals:
-
+```json
 {
   "AwsAccountId": "123456789012",
   "TemplateId": "focus-ou-template",
@@ -148,9 +148,11 @@ Here’s a trimmed version showing parameterized filters added on top of visuals
   }
 }
 
+```
 
-3. Terraform Integration
 
+## 3. Terraform Integration
+```hcl
 Update your Terraform module’s QuickSight section:
 
 resource "aws_quicksight_template" "focus_ou" {
@@ -188,9 +190,11 @@ resource "aws_quicksight_dashboard" "focus_ou" {
     }
   }
 }
+```
 
 
-✅ End Result
+
+## ✅ End Result
 
 QuickSight OU Dashboard now includes interactive dropdowns:
 
@@ -505,5 +509,6 @@ Date Range Slider (start + end date picker)
 Last 3 months vs. last 6 months
 
 Fiscal quarters
+
 
 Year-to-date
