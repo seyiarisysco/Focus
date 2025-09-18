@@ -208,12 +208,12 @@ All visuals respond to these filters dynamically.
 
 Team can explore cost trends, service breakdowns, and discounts per OU without editing queries.
 
-👉 Do you want me to also add a time range filter (Year/Month) so users can drill into specific months or quarters directly from the dashboard?
+## 👉 Do you want me to also add a time range filter (Year/Month) so users can drill into specific months or quarters directly from the dashboard?
 
 
-Perfect ✅ — let’s extend the FOCUS OU QuickSight dashboard template to include a time range filter so users can drill into specific years, months, or quarters directly.
+## Perfect ✅ — let’s extend the FOCUS OU QuickSight dashboard template to include a time range filter so users can drill into specific years, months, or quarters directly.
 
-🔹 1. Add Time Parameters
+## 🔹 1. Add Time Parameters
 
 We’ll add two new parameters:
 
@@ -223,10 +223,10 @@ MonthFilter → select the billing month
 
 Later, we can combine them for a Year-Month range selector.
 
-🔹 2. Updated Template JSON (Time Filters Added)
+## 🔹 2. Updated Template JSON (Time Filters Added)
 
 Here’s the enhanced template JSON snippet with OU, Account, Service, Year, Month filters:
-
+```json
 {
   "AwsAccountId": "123456789012",
   "TemplateId": "focus-ou-template",
@@ -329,12 +329,14 @@ Here’s the enhanced template JSON snippet with OU, Account, Service, Year, Mon
     }
   }
 }
+```
 
 
-🔹 3. Terraform Integration (No Change in Structure)
+
+## 🔹 3. Terraform Integration (No Change in Structure)
 
 Terraform just needs to point to the updated template JSON.
-
+```hcl 
 resource "aws_quicksight_template" "focus_ou" {
   template_id    = "focus-ou-template"
   name           = "FOCUS OU Template"
@@ -354,7 +356,9 @@ resource "aws_quicksight_template" "focus_ou" {
 }
 
 
-✅ End Result
+```
+
+## ✅ End Result
 
 Dashboard now has interactive dropdowns for:
 
@@ -373,11 +377,11 @@ Analysts can slice costs by OU → Account → Service → Time.
 Makes it easy to drill into specific months or quarters for trend analysis.
 
 
-👉 Do you want me to also add a date range slider (between start & end month) instead of just dropdowns, so you can do rolling-window analysis (e.g., last 6 months)?
+## 👉 Do you want me to also add a date range slider (between start & end month) instead of just dropdowns, so you can do rolling-window analysis (e.g., last 6 months)?
 
-Great choice 🎯 — let’s take this further by adding a date range slider so you can do rolling-window analysis (e.g., last 3 months, last 6 months, year-to-date).
+## Great choice 🎯 — let’s take this further by adding a date range slider so you can do rolling-window analysis (e.g., last 3 months, last 6 months, year-to-date).
 
-🔹 1. Approach
+### 🔹 1. Approach
 
 Instead of just filtering by single Year/Month, we’ll add two new date parameters:
 
@@ -389,16 +393,20 @@ These will connect to a range slider in QuickSight so analysts can interactively
 
 ⚠️ Since your FOCUS dataset stores year + month (not a native date), we’ll create a synthetic date column in Athena using:
 
-
+```sql 
 CAST(DATE_PARSE(CONCAT(year, '-', month, '-01'), '%Y-%m-%d') AS DATE) AS billing_date
+```
+
+
 
 
 This way, QuickSight can handle date filters natively.
 
-🔹 2. Updated Athena SQL (FOCUS OU Dataset)
+## 🔹 2. Updated Athena SQL (FOCUS OU Dataset)
 
 Update the dataset SQL in Terraform:
 
+```sql
 SELECT f.year,
        f.month,
        CAST(DATE_PARSE(CONCAT(f.year, '-', f.month, '-01'), '%Y-%m-%d') AS DATE) AS billing_date,
@@ -415,11 +423,13 @@ SELECT f.year,
 FROM default.focus_org_billing f
 LEFT JOIN default.account_ou_mapping m
   ON f.usageAccountId = m.AccountId
+```
 
-🔹 3. Template JSON with Date Range Slider
+
+## 🔹 3. Template JSON with Date Range Slider
 
 Here’s the new JSON snippet with a range slider filter for billing_date:
-
+```json 
 {
   "Parameters": {
     "StartDate": { "DateTimeParameter": { "DefaultValues": { "StaticValues": ["2025-01-01"] } } },
@@ -469,11 +479,15 @@ Here’s the new JSON snippet with a range slider filter for billing_date:
   ]
 }
 
+```
 
-🔹 4. Terraform Integration
 
-Nothing changes in structure — just point Terraform to the updated SQL + template JSON:
+## 🔹 4. Terraform Integration
 
+Nothing changes in structure — just point Terraform to the updated SQL + template 
+
+### JSON:
+```hcl 
 resource "aws_quicksight_data_set" "focus_ou" {
   data_set_id   = "focus-ou-dataset"
   name          = "FOCUS_OU"
@@ -490,9 +504,11 @@ resource "aws_quicksight_data_set" "focus_ou" {
     }
   }
 }
+```
 
 
-✅ End Result
+
+## ✅ End Result
 
 Your dashboard will now include:
 
@@ -512,3 +528,4 @@ Fiscal quarters
 
 
 Year-to-date
+
