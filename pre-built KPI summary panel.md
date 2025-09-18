@@ -1,18 +1,18 @@
-👉 Do you want me to also add a pre-built KPI summary panel (e.g., Total Cost, % Savings from Discounts, Top OU by Spend) so you have an executive-level summary on top of the dashboard?
+# 👉 Do you want me to also add a pre-built KPI summary panel (e.g., Total Cost, % Savings from Discounts, Top OU by Spend) so you have an executive-level summary on top of the dashboard?
 
-Perfect 🎯 — let’s finish this by adding a KPI summary panel so your QuickSight OU Dashboard has an executive-level overview before the detailed charts.
+# Perfect 🎯 — let’s finish this by adding a KPI summary panel so your QuickSight OU Dashboard has an executive-level overview before the detailed charts.
 
-🔹 1. KPI Metrics to Show
+## 🔹 1. KPI Metrics to Show
 
-We’ll add three high-level KPIs at the top of the dashboard:
+### We’ll add three high-level KPIs at the top of the dashboard:
 
-Total Cost (SUM of effectiveCost)
+### Total Cost (SUM of effectiveCost)
 
-% Savings (Discount Efficiency) → (1 - SUM(effectiveCost)/SUM(listCost)) * 100
+### % Savings (Discount Efficiency) → (1 - SUM(effectiveCost)/SUM(listCost)) * 100
 
-Top OU by Spend (max of OU grouped spend)
+### Top OU by Spend (max of OU grouped spend)
 
-🔹 2. JSON Snippet (KPI Visuals)
+## 🔹 2. JSON Snippet (KPI Visuals)
 
 Add these to your focus-ou-template.json in the Visuals section of the first sheet:
 
@@ -256,4 +256,5 @@ Helps FinOps teams catch cost anomalies before they balloon
 
 
 👉 Do you also want me to add an automated alert (SNS + CloudWatch) when anomalies are detected in QuickSight, so your FinOps team gets an email/Slack ping?
+
 
