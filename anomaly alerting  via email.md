@@ -1,10 +1,10 @@
-👉 Do you want me to wire this directly INTO emails?
+# 👉 Do you want me to wire this directly INTO emails?
 
-Perfect 👍 — then we’ll keep the anomaly alerting simple and reliable via email.
+## Perfect 👍 — then we’ll keep the anomaly alerting simple and reliable via email.
 
 Here’s how it fits into your stack now:
 
-🔹 1. What We Already Added
+## 🔹 1. What We Already Added
 
 Athena Query → computes OU daily spend
 
@@ -14,10 +14,10 @@ CloudWatch Alarm → triggers when cost spike >30%
 
 SNS Topic → sends alerts
 
-🔹 2. Email Subscription (Terraform)
+## 🔹 2. Email Subscription (Terraform)
 
 We’ll finalize the SNS setup so your FinOps team receives email alerts:
-
+```yaml
 resource "aws_sns_topic" "finops_alerts" {
   name = "finops-anomaly-alerts"
 }
@@ -28,8 +28,10 @@ resource "aws_sns_topic_subscription" "finops_email" {
   endpoint  = "finops-team@example.com" # <-- replace with your FinOps distribution list
 }
 
+```
 
-🔹 3. Deployment Flow
+
+## 🔹 3. Deployment Flow
 
 Terraform Apply → creates SNS topic + email subscription.
 
@@ -39,13 +41,16 @@ AWS will send a confirmation email to finops-team@example.com.
 
 Once confirmed, every CloudWatch Alarm trigger will send an email like:
 
+```vbnet
 ALARM: "OU-Cost-Spike" in US-EAST-1
 Threshold: >30% increase in OU spend
 Metric: Custom/FinOps - CostSpikePct
 Triggered for OU: <OU_Name>
+```
 
 
-🔹 4. Optional Fine-Tuning
+
+## 🔹 4. Optional Fine-Tuning
 
 Thresholds per OU → If some OUs normally fluctuate more, we can set different alarm thresholds per OU.
 
@@ -53,7 +58,7 @@ Multiple emails → Add more aws_sns_topic_subscription blocks with different en
 
 HTML formatting → SNS supports rich messages if you prefer more structured alerts.
 
-✅ End Result
+## ✅ End Result
 
 Exec Dashboard in QuickSight (KPIs, OU filters, date range slider, anomaly insights)
 
@@ -61,9 +66,9 @@ Daily anomaly detection via Athena + CloudWatch
 
 Automatic email alerts when OU spend spikes unexpectedly
 
-👉 Do you want me to also add a daily cost summary email (not just anomaly alerts) — e.g., “Yesterday’s total spend: $X, Top OU: Y, % change vs. day before”?
+# 👉 Do you want me to also add a daily cost summary email (not just anomaly alerts) — e.g., “Yesterday’s total spend: $X, Top OU: Y, % change vs. day before”?
 
-Perfect 🚀 — let’s add a daily cost summary email alongside anomaly alerts.
+## Perfect 🚀 — let’s add a daily cost summary email alongside anomaly alerts.
 This way, your FinOps team gets a digest every morning with:
 
 Yesterday’s total spend
@@ -74,7 +79,7 @@ Top OU by cost
 
 Top Service by cost
 
-🔹 1. Approach
+## 🔹 1. Approach
 
 We’ll extend your Lambda publisher (which already queries Athena for anomalies) so it also:
 
@@ -84,8 +89,8 @@ Formats results into an email-friendly message
 
 Publishes it to the same SNS Topic (finops-anomaly-alerts)
 
-🔹 2. Updated Lambda Code (index.py)
-
+## 🔹 2. Updated Lambda Code (index.py)
+```python
 import boto3, os, datetime
 
 athena = boto3.client("athena")
@@ -172,12 +177,14 @@ def handler(event, context):
     )
 
     return {"status": "sent", "total": total_yesterday}
+```
 
 
-🔹 3. Terraform for Lambda + SNS
+
+## 🔹 3. Terraform for Lambda + SNS
 
 Update your Lambda definition:
-
+```hcl
 resource "aws_lambda_function" "cost_summary" {
   function_name = "daily-cost-summary"
   runtime       = "python3.12"
@@ -213,20 +220,23 @@ resource "aws_lambda_permission" "allow_summary_events" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.daily_summary.arn
 }
+```
 
-✅ End Result
+
+
+## ✅ End Result
 
 Now your FinOps alerts system does two things:
 
-🚨 Anomaly Alerts
+### 🚨 Anomaly Alerts
 
 Trigger when OU spend spikes >30%
 
 Email subject: ALARM: OU-Cost-Spike
 
-📊 Daily Cost Summary Email (8 AM UTC)
+### 📊 Daily Cost Summary Email (8 AM UTC)
 Example email:
-
+```yaml
 📊 Daily AWS Spend Summary (2025-09-14)
 
 Total Spend: $12,345.67
@@ -236,14 +246,16 @@ Top OU: Marketing-OU
 Top Service: AmazonEC2
 
 — FOCUS OU FinOps Bot
+```
 
 
-👉 Do you also want me to enhance this daily email with an attached CSV or table of Top 10 OUs & Services for deeper visibility (not just the #1)?
+
+# 👉 Do you also want me to enhance this daily email with an attached CSV or table of Top 10 OUs & Services for deeper visibility (not just the #1)?
 
 
-Perfect ✅ — let’s enhance the daily FinOps email so your team gets not only the high-level KPIs but also a Top 10 OU and Top 10 Service breakdown in CSV + inline table format.
+## Perfect ✅ — let’s enhance the daily FinOps email so your team gets not only the high-level KPIs but also a Top 10 OU and Top 10 Service breakdown in CSV + inline table format.
 
-🔹 1. Enhanced Email Content
+## 🔹 1. Enhanced Email Content
 
 The daily email will now include:
 
@@ -257,8 +269,8 @@ Inline Table → Top 10 Services by spend
 
 CSV Attachment with full daily breakdown
 
-🔹 2. Updated Lambda Code (index.py)
-
+## 🔹 2. Updated Lambda Code (index.py)
+```python
 import boto3, os, datetime, csv, io
 
 athena = boto3.client("athena")
@@ -374,31 +386,37 @@ Top Services:
     )
 
     return {"status": "sent", "total": total_yesterday}
+```
 
 
-🔹 3. Terraform Additions
+
+## 🔹 3. Terraform Additions
 
 Add an S3 bucket for CSV storage (if not reusing your OU bucket):
-
+```hcl
 resource "aws_s3_bucket" "summary_reports" {
   bucket = "finops-daily-summaries"
 }
+```
 
 
-Update the Lambda environment:
 
+## Update the Lambda environment:
+```hcl 
 environment {
   variables = {
     SNS_TOPIC     = aws_sns_topic.finops_alerts.arn
     SNS_CSV_BUCKET = aws_s3_bucket.summary_reports.bucket
   }
 }
+```
 
-✅ End Result
+
+## ✅ End Result
 
 Your FinOps team will now receive a daily email like this:
 
-EXAMPLE EMAIL:
+## EXAMPLE EMAIL:
 
 Subject:
 AWS Daily Cost Summary - 2025-09-14
@@ -427,5 +445,6 @@ Top Services:
 Anomaly alerts (spikes >30%) via email
 
 Daily spend summary email with Top OUs + Services
+
 
 Downloadable CSV for deeper analysis
