@@ -15,7 +15,7 @@
 ## 🔹 2. JSON Snippet (KPI Visuals)
 
 Add these to your focus-ou-template.json in the Visuals section of the first sheet:
-
+ ```json 
 {
   "KPIVisual": {
     "Title": { "Text": "Total Cost" },
@@ -85,13 +85,16 @@ Add these to your focus-ou-template.json in the Visuals section of the first she
     }
   }
 }
+```
 
 
-🔹 3. Terraform — No Change in Structure
+
+## 🔹 3. Terraform — No Change in Structure
 
 Your Terraform just needs to point to the updated template JSON.
 Example:
 
+```yaml 
 resource "aws_quicksight_template" "focus_ou" {
   template_id    = "focus-ou-template"
   name           = "FOCUS OU Template"
@@ -108,25 +111,27 @@ resource "aws_quicksight_template" "focus_ou" {
     }
   }
 }
+```
 
 
-✅ End Result
+
+## ✅ End Result
 
 Your QuickSight FOCUS OU Dashboard will now look like this:
 
-📊 KPI Summary (executive panel at top):
+### 📊 KPI Summary (executive panel at top):
 
-Total Cost → current spend (filtered by OU, Account, Service, Date Range)
+#### Total Cost → current spend (filtered by OU, Account, Service, Date Range)
 
-Discount Efficiency (%) → % savings from list vs. effective cost
+#### Discount Efficiency (%) → % savings from list vs. effective cost
 
-Top OU by Spend → which OU is driving the most cost
+#### Top OU by Spend → which OU is driving the most cost
 
-📉 Interactive Filters:
+#### 📉 Interactive Filters:
 
 OU, Account, Service, Date Range
 
-📈 Detailed Visuals:
+#### 📈 Detailed Visuals:
 
 Spend by OU
 
@@ -137,11 +142,11 @@ Service breakdown by OU
 Discount efficiency by OU
 
 
-👉 Do you also want me to add an "anomaly detection widget" (QuickSight Insight visual) that automatically flags unusual cost spikes per OU?
+# 👉 Do you also want me to add an "anomaly detection widget" (QuickSight Insight visual) that automatically flags unusual cost spikes per OU?
 
-🔥 Excellent — let’s supercharge your FOCUS OU Dashboard by adding an Anomaly Detection Widget (QuickSight Insight Visual) so it automatically flags unusual cost spikes per OU.
+# 🔥 Excellent — let’s supercharge your FOCUS OU Dashboard by adding an Anomaly Detection Widget (QuickSight Insight Visual) so it automatically flags unusual cost spikes per OU.
 
-🔹 1. What’s an Insight Visual in QuickSight?
+# 🔹 1. What’s an Insight Visual in QuickSight?
 
 Insight Visuals use ML-based anomaly detection built into QuickSight.
 
@@ -155,10 +160,10 @@ Track spend trends per OU
 
 Highlight sudden spikes/drops in cost
 
-🔹 2. JSON Snippet for Anomaly Detection
+## 🔹 2. JSON Snippet for Anomaly Detection
 
 Add this to your focus-ou-template.json under Visuals:
-
+```json
 {
   "InsightVisual": {
     "Title": { "Text": "Anomaly Detection: Cost by OU" },
@@ -189,20 +194,22 @@ Add this to your focus-ou-template.json under Visuals:
     }
   }
 }
+```
 
-🔹 3. Supporting Athena Dataset
+
+## 🔹 3. Supporting Athena Dataset
 
 We already added billing_date (synthetic date from year + month):
-
+```sql
 CAST(DATE_PARSE(CONCAT(year, '-', month, '-01'), '%Y-%m-%d') AS DATE) AS billing_date
-
-
+```
 This makes it time-series ready for anomaly detection.
 
-🔹 4. Terraform Integration
+## 🔹 4. Terraform Integration
 
 No changes in Terraform structure — just update the template JSON:
 
+```hcl
 resource "aws_quicksight_dashboard" "focus_ou" {
   dashboard_id   = "focus-ou-dashboard"
   name           = "FOCUS OU Dashboard"
@@ -220,13 +227,15 @@ resource "aws_quicksight_dashboard" "focus_ou" {
     }
   }
 }
+```
 
 
-✅ End Result
+
+## ✅ End Result
 
 Your FOCUS OU QuickSight Dashboard now includes:
 
-📊 KPI Summary:
+### 📊 KPI Summary:
 
 Total Cost
 
@@ -234,11 +243,11 @@ Discount Efficiency (%)
 
 Top OU by Spend
 
-📉 Interactive Filters:
+### 📉 Interactive Filters:
 
 OU, Account, Service, Date Range
 
-📈 Detailed Visuals:
+### 📈 Detailed Visuals:
 
 Spend by OU
 
@@ -248,13 +257,14 @@ Service breakdown
 
 Discount efficiency
 
-🚨 Anomaly Detection Widget (Insight Visual):
+### 🚨 Anomaly Detection Widget (Insight Visual):
 
 Flags unexpected spikes/drops in OU spend
 
 Helps FinOps teams catch cost anomalies before they balloon
 
 
-👉 Do you also want me to add an automated alert (SNS + CloudWatch) when anomalies are detected in QuickSight, so your FinOps team gets an email/Slack ping?
+#### 👉 Do you also want me to add an automated alert (SNS + CloudWatch) when anomalies are detected in QuickSight, so your FinOps team gets an email/Slack ping?
+
 
 
