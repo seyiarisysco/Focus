@@ -1,8 +1,8 @@
-👉 Do you also want me to push this CSV automatically into QuickSight as a dataset so the daily summary is visible inside the dashboard too?
+# 👉 Do you also want me to push this CSV automatically into QuickSight as a dataset so the daily summary is visible inside the dashboard too?
 
-Great move 🎯 — let’s push the daily summary CSV into QuickSight so your FinOps team sees it inside the dashboard as well as in email.
+## Great move 🎯 — let’s push the daily summary CSV into QuickSight so your FinOps team sees it inside the dashboard as well as in email.
 
-🔹 1. Approach
+## 🔹 1. Approach
 
 We already generate a daily CSV of spend by OU + Service.
 
@@ -12,8 +12,9 @@ Register that S3 location as a QuickSight dataset (SPICE refresh daily).
 
 Create a “Daily Summary” sheet in your existing FOCUS OU Dashboard.
 
-🔹 2. Terraform — QuickSight S3 Data Source
+## 🔹 2. Terraform — QuickSight S3 Data Source
 
+```hcl
 # S3 bucket already exists (finops-daily-summaries)
 
 resource "aws_quicksight_data_source" "daily_summary_s3" {
@@ -32,11 +33,13 @@ resource "aws_quicksight_data_source" "daily_summary_s3" {
   }
 }
 
+```
 
-🔹 3. Manifest File for QuickSight
+
+## 🔹 3. Manifest File for QuickSight
 
 Save this as manifest.json in your S3 bucket:
-
+```json
 {
   "fileLocations": [
     {
@@ -52,10 +55,12 @@ Save this as manifest.json in your S3 bucket:
     "containsHeader": "true"
   }
 }
+```
 
 
-🔹 4. QuickSight Dataset for Daily Summary
 
+## 🔹 4. QuickSight Dataset for Daily Summary
+```hcl
 resource "aws_quicksight_data_set" "daily_summary" {
   data_set_id    = "daily-summary-dataset"
   name           = "Daily Summary"
@@ -76,11 +81,14 @@ resource "aws_quicksight_data_set" "daily_summary" {
     }
   }
 }
+```
 
 
-🔹 5. Add “Daily Summary” Sheet to Dashboard
+
+## 🔹 5. Add “Daily Summary” Sheet to Dashboard
 
 Extend your focus-ou-template.json with a new sheet:
+```json
 
 {
   "Sheets": [
@@ -131,12 +139,14 @@ Extend your focus-ou-template.json with a new sheet:
     }
   ]
 }
+```
 
 
-🔹 6. Glue Together in Terraform
+
+## 🔹 6. Glue Together in Terraform
 
 Update dashboard definition so both datasets are referenced:
-
+```yaml
 resource "aws_quicksight_dashboard" "focus_ou" {
   dashboard_id   = "focus-ou-dashboard"
   name           = "FOCUS OU Dashboard"
@@ -158,9 +168,11 @@ resource "aws_quicksight_dashboard" "focus_ou" {
     }
   }
 }
+```
 
 
-✅ End Result
+
+## ✅ End Result
 
 Now your FinOps workflow delivers value in two channels:
 
@@ -180,12 +192,12 @@ New “Daily Summary” sheet with Top 10 tables
 
 Data refreshes daily from S3
 
-👉 Do you want me to also add a QuickSight email subscription (dashboard snapshots emailed daily to execs), so leadership gets visuals in their inbox without opening QuickSight?
+# 👉 Do you want me to also add a QuickSight email subscription (dashboard snapshots emailed daily to execs), so leadership gets visuals in their inbox without opening QuickSight?
 
-Perfect ✅ — let’s give your leadership team daily dashboard snapshots by email. This uses QuickSight Subscriptions, which automatically email PDF/PNG reports on a schedule.
+## Perfect ✅ — let’s give your leadership team daily dashboard snapshots by email. This uses QuickSight Subscriptions, which automatically email PDF/PNG reports on a schedule.
 
 
-🔹 1. How It Works
+## 🔹 1. How It Works
 
 QuickSight dashboards → subscriptions
 
@@ -195,12 +207,12 @@ Uses QuickSight Enterprise Edition + email integration
 
 Complements your FinOps daily summary emails
 
-🔹 2. Terraform for QuickSight Dashboard Subscription
+## 🔹 2. Terraform for QuickSight Dashboard Subscription
 
 Terraform doesn’t yet have native QuickSight subscription resources, but we can use the AWS CLI / boto3 via a null_resource + local-exec (or a Lambda).
 
 Here’s a Terraform example using aws cli:
-
+```hcl
 resource "null_resource" "quicksight_subscription" {
   provisioner "local-exec" {
     command = <<EOT
@@ -214,13 +226,15 @@ resource "null_resource" "quicksight_subscription" {
     EOT
   }
 }
+```
+
 
 
 ⚠️ Replace recipients with a list of corporate emails (users must be in QuickSight).
 
 
-🔹 3. Alternative — Python boto3 Script (More Flexible)
-
+## 🔹 3. Alternative — Python boto3 Script (More Flexible)
+```python
 import boto3
 
 qs = boto3.client("quicksight")
@@ -235,11 +249,13 @@ response = qs.create_dashboard_subscription(
 )
 
 print("Subscription created:", response)
+```
+
 
 
 This can be run once, or wrapped into a Lambda triggered by Terraform.
 
-🔹 4. Recommended Setup
+## 🔹 4. Recommended Setup
 
 Recipients:
 
@@ -251,7 +267,7 @@ Frequency: Daily at 9 AM (local time)
 
 Format: PDF (cleaner for executives)
 
-✅ End Result
+## ✅ End Result
 
 Now you have a triple delivery model:
 
@@ -276,5 +292,6 @@ Dashboard = remains the single source of truth for deep dives
  Email anomaly alerts (>30% spike) via CloudWatch + SNS
 
  Daily summary email (KPIs + CSV link + Top 10 OU/Services)
+
 
  Daily QuickSight PDF subscription for executives
