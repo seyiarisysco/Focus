@@ -1,9 +1,9 @@
-👉 Do you also want me to add an automated alert (SNS + CloudWatch) when anomalies are detected in QuickSight, so your FinOps team gets an email/Slack ping?
+# 👉 Do you also want me to add an automated alert (SNS + CloudWatch) when anomalies are detected in QuickSight, so your FinOps team gets an email/Slack ping?
 
 
-Awesome 🚀 — let’s close the loop: we’ll add automated anomaly alerts so your FinOps team gets notified (via SNS → Email/Slack) whenever QuickSight anomaly detection flags a cost spike.
+## Awesome 🚀 — let’s close the loop: we’ll add automated anomaly alerts so your FinOps team gets notified (via SNS → Email/Slack) whenever QuickSight anomaly detection flags a cost spike.
 
-🔹 1. How Alerts Work in QuickSight
+## 🔹 1. How Alerts Work in QuickSight
 
 QuickSight Anomaly Detection is visual/ML-driven.
 
@@ -11,7 +11,7 @@ To trigger alerts, we need CloudWatch Alarms that monitor Athena query results o
 
 Then, connect CloudWatch alarms → SNS for email/Slack/webhook notifications.
 
-🔹 2. Architecture
+## 🔹 2. Architecture
 
 Athena Scheduled Query (daily) → aggregates OU spend.
 
@@ -21,10 +21,11 @@ CloudWatch Alarm → detects spikes beyond threshold (e.g., +30% day-over-day).
 
 SNS Topic → sends alert email/Slack webhook.
 
-🔹 3. Terraform Additions
+## 🔹 3. Terraform Additions
 
 Extend your FOCUS OU module with SNS + CloudWatch:
 
+```hcl
 # ---------------- SNS Topic ----------------
 resource "aws_sns_topic" "finops_alerts" {
   name = "finops-anomaly-alerts"
@@ -107,11 +108,60 @@ resource "aws_lambda_permission" "allow_metric_events" {
   source_arn    = aws_cloudwatch_event_rule.daily_metric.arn
 }
 
+```
 
-🔹 4. Lambda Code (index.py)
+
+## 🔹 4. Lambda Code (index.py)
 
 This Lambda runs daily, queries Athena, and pushes cost spike metrics to CloudWatch:
+```yaml
+import boto3, os, datetime
 
+cloudwatch = boto3.client("cloudwatch")
+athena = boto3.client("athena")
+
+def handler(event, context):
+    # Example: Query yesterday vs. day before
+    query = """
+    WITH daily_cost AS (
+      SELECT billing_date, OU, SUM(effectiveCost) AS total_cost
+      FROM focus_org_billing f
+      JOIN account_ou_mapping m
+        ON f.usageAccountId = m.AccountId
+      WHERE billing_date >= date_add('day', -2, current_date)
+      GROUP BY billing_date, OU
+    )
+    SELECT
+      a.OU,
+      ((a.total_cost - b.total_cost)/b.total_cost)*100 AS spike_pct
+    FROM daily_cost a
+    JOIN daily_cost b ON a.OU = b.OU
+    WHERE a.billing_date = current_date - interval '1' day
+      AND b.billing_date = current_date - interval '2' day;
+    """
+
+    # Submit Athena query
+    athena.start_query_execution(
+        QueryString=query,
+        QueryExecutionContext={"Database": "default"},
+        ResultConfiguration={"OutputLocation": "s3://focus-ou-mapping-central/athena-results/"}
+    )
+
+    # Example metric push (stubbed)
+    cloudwatch.put_metric_data(
+        Namespace=os.environ["NAMESPACE"],
+        MetricData=[
+            {
+                "MetricName": os.environ["METRIC"],
+                "Dimensions": [{"Name": "OU", "Value": "ExampleOU"}],
+                "Value": 45.0,  # Example 45% spike
+                "Unit": "Percent"
+            }
+        ]
+    )
+
+    return {"status": "ok"}
+```
 import boto3, os, datetime
 
 cloudwatch = boto3.client("cloudwatch")
@@ -160,7 +210,7 @@ def handler(event, context):
     return {"status": "ok"}
 
 
-✅ End Result
+## ✅ End Result
 
 Now your stack has:
 
@@ -168,4 +218,5 @@ Now your stack has:
 📉 Daily Athena Queries → compute OU costs
 🚨 CloudWatch Alarms → detect spikes >30% day-over-day
 📧 SNS Alerts → notify FinOps team via Email/Slack
+
 
