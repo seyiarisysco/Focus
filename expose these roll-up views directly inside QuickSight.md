@@ -1,8 +1,8 @@
-Do you want me to also expose these roll-up views directly inside QuickSight (new sheets for Monthly, Quarterly, Yearly), so execs never need to touch Athena?
+# Do you want me to also expose these roll-up views directly inside QuickSight (new sheets for Monthly, Quarterly, Yearly), so execs never need to touch Athena?
 
-Perfect ✅ — let’s expose the Athena roll-up views directly in QuickSight, so execs see monthly, quarterly, yearly spend trends inside the dashboard without touching Athena.
+## Perfect ✅ — let’s expose the Athena roll-up views directly in QuickSight, so execs see monthly, quarterly, yearly spend trends inside the dashboard without touching Athena.
 
-🔹 1. Roll-up Views Recap (Athena)
+## 🔹 1. Roll-up Views Recap (Athena)
 
 We already created:
 
@@ -205,5 +205,6 @@ Daily breakdown (Top OUs, Services)
 Monthly trends
 
 Quarterly trends
+
 
 Yearly roll-ups
